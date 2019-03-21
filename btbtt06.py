@@ -51,6 +51,27 @@ class Attachement(Base):
             self.title, self.fid, self.aid, self.link, self.hash)
 
 
+class AttachementHeader(Base):
+    # 表的名字:
+    __tablename__ = 'ATTACHEMENT_HEADER'
+
+    def __init__(self):
+        pass
+
+    # 表的结构:
+    downloaded = Column(DateTime)  # VDPP,
+    title = Column(String)  # VDPP,
+    source = Column(String)  # observation,
+    link = Column(String)  # observation,
+    fid = Column(String, primary_key=True)
+    aid = Column(String, primary_key=True)
+    mod_date = Column(DateTime)
+
+    def __str__(self) -> str:
+        return "title: {}, fid: {}, aid: {}, link: {}".format(
+            self.title, self.fid, self.aid, self.link)
+
+
 class Link(Base):
     # 表的名字:
     __tablename__ = 'LINK'
@@ -185,27 +206,36 @@ def findAttaches(links: [Link]) -> [Link]:
     return atts
 
 
-def downloadAttachement(attachement: Attachement) -> Attachement:
+def downloadAttachement(header: AttachementHeader) -> dict:
     import re
     import base64
     from hashlib import sha256
 
-    if not attachement:
+    if not header:
         return None
 
-    downloadUrl = attachement.link
+    downloadUrl = header.link
+    attachement = Attachement()
     start = datetime.now()
     req = requests.get(downloadUrl, headers=REQUEST_HEADERS)
     attachement.content = str(base64.b64encode(req.content), 'utf-8')
     attachement.hash = sha256(req.content).hexdigest()
     attachement.link = downloadUrl
     attachement.mod_date = datetime.now()
+    attachement.title = header.title
+    attachement.aid = header.aid
+    attachement.fid = header.fid
+    attachement.source = header.source
 
-    print("Download attachement from {} took {}(sec)".format(downloadUrl, start.timestamp()-attachement.mod_date.timestamp()))
-    return attachement
+    header.mod_date = datetime.now()
+    header.downloaded = datetime.now()
+
+    print("Download attachement from {} took {}(sec)".format(downloadUrl,
+                                                             start.timestamp() - attachement.mod_date.timestamp()))
+    return {'header': header, 'attachement': attachement}
 
 
-def makeAttachement(link: Link) -> Attachement:
+def makeAttachementHeader(link: Link) -> Attachement:
     import re
 
     match = re.match(attachementRegexp, link.link)
@@ -216,7 +246,7 @@ def makeAttachement(link: Link) -> Attachement:
     aid = match.group('aid')
     downloadUrl = attachementUrlFormat.format(fid, aid)
 
-    attachement = Attachement()
+    attachement = AttachementHeader()
     attachement.source = link.link
     attachement.link = downloadUrl
     attachement.aid = aid
@@ -281,7 +311,7 @@ def readThread(source, index=False) -> dict:
 
     attachements = []
     for attLink in attLinks:
-        attachement = makeAttachement(attLink)
+        attachement = makeAttachementHeader(attLink)
         if attachement:
             attachements.append(attachement)
 
@@ -290,7 +320,7 @@ def readThread(source, index=False) -> dict:
         print(thread.info)
         links = []
         page = None
-    print("Has {} links took {}(sec)".format(len(links),datetime.now().timestamp()-start))
+    print("Has {} links took {}(sec)".format(len(links), datetime.now().timestamp() - start))
 
     return {'thread': thread, 'links': links, 'attachements': attachements}
 
@@ -491,6 +521,7 @@ def fetchAllThreads(dbUrl):
             results = session.query(ThreadHeader).outerjoin(Thread, Thread.link == ThreadHeader.link) \
                 .filter((ThreadHeader.lastpost > Thread.mod_date) | (Thread.link.is_(None))) \
                 .limit(FATCH_SIZE).all()
+            session.expunge_all()
             session.commit()
 
             nbRes = len(results)
@@ -506,7 +537,7 @@ def fetchAllThreads(dbUrl):
             threadHeader: ThreadHeader = results[index]
 
             print("{} Got {} headers took {}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
-                datetime.now().isoformat(), nbRes, datetime.now().timestamp()-start, nbResOld, nbBlocked,
+                datetime.now().isoformat(), nbRes, datetime.now().timestamp() - start, nbResOld, nbBlocked,
                 index, threadHeader.title, threadHeader.link))
             nbResOld = nbRes
 
@@ -531,9 +562,10 @@ def fetchAllAttachements(dbUrl):
             start = datetime.now().timestamp()
             session = Session()
             from sqlalchemy.sql import exists, or_
-            results = session.query(Attachement) \
-                .filter(Attachement.content.is_(None)) \
+            results = session.query(AttachementHeader) \
+                .filter(AttachementHeader.downloaded.is_(None)) \
                 .limit(FATCH_SIZE).all()
+            session.expunge_all()
             session.commit()
 
             nbRes = len(results)
@@ -546,19 +578,51 @@ def fetchAllAttachements(dbUrl):
                 break
 
             index = random.randrange(len(results))
-            attachement: Attachement = results[index]
+            header: AttachementHeader = results[index]
 
             print("{} Got {} attachements took {}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
-                datetime.now().isoformat(), nbRes, datetime.now().timestamp()-start,
-                nbResOld, nbBlocked, index, attachement.title, attachement.link))
+                datetime.now().isoformat(), nbRes, datetime.now().timestamp() - start,
+                nbResOld, nbBlocked, index, header.title, header.link))
             nbResOld = nbRes
-            
-            attachement = downloadAttachement(attachement)
+
+            attachement = downloadAttachement(header)
             session = Session()
-            session.merge(attachement)
+            session.merge(attachement.get('attachement'))
+            session.merge(attachement.get('header'))
             session.commit()
-        except Exception as e:
+        except ValueError as e:
             print("Error download thread for {}".format(e))
+
+
+def makeUnreadedAttachement(dbUrl):
+    import random
+
+    engine = create_engine(dbUrl)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+
+    start = datetime.now().timestamp()
+    session = Session()
+    from sqlalchemy.sql import exists, or_
+    results = session.query(Attachement) \
+        .filter(Attachement.content.is_(None)) \
+        .limit(5000).all()
+    session.expunge_all()
+    session.commit()
+
+    print(len(results))
+
+    for attachement in results:
+        header = AttachementHeader()
+        header.mod_date = datetime.now()
+        header.source = attachement.source
+        header.fid = attachement.fid
+        header.aid = attachement.aid
+        header.title = attachement.title
+        header.link = attachement.link
+        session = Session()
+        session.merge(header)
+        session.commit()
 
 
 def main():
@@ -568,7 +632,8 @@ def main():
     # fetchAllAttachements(DB_URL)
     # getAllScores(engine)
     # getNews(engine)
-    thread = readThread('http://www.btbtt06.com/thread-index-fid-3-tid-8609.htm')
+    # thread = readThread('http://www.btbtt06.com/thread-index-fid-3-tid-8609.htm')
+    makeUnreadedAttachement(DB_URL)
 
     print("End at {}".format(datetime.now().isoformat()))
     return
