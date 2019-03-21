@@ -590,7 +590,7 @@ def fetchAllAttachements(dbUrl):
             session.merge(attachement.get('attachement'))
             session.merge(attachement.get('header'))
             session.commit()
-        except ValueError as e:
+        except Exception as e:
             print("Error download thread for {}".format(e))
 
 
