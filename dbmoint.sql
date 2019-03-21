@@ -27,4 +27,7 @@ from
 	from
 		ATTACHEMENT
 	where
-		not attachement.content ISNULL);
+		not attachement.content ISNULL),
+	(
+	SELECT
+		CURRENT_TIMESTAMP as dd);
