@@ -189,14 +189,14 @@ def downloadAttachement(attachement: Attachement) -> Attachement:
         return None
 
     downloadUrl = attachement.link
-
-    print("Download attachement from {}".format(downloadUrl))
+    start = datetime.now()
     req = requests.get(downloadUrl, headers=REQUEST_HEADERS)
     attachement.content = str(base64.b64encode(req.content), 'utf-8')
     attachement.hash = sha256(req.content).hexdigest()
     attachement.link = downloadUrl
     attachement.mod_date = datetime.now()
 
+    print("Download attachement from {} took {}(sec)".format(downloadUrl, start.timestamp()-attachement.mod_date.timestamp()))
     return attachement
 
 
@@ -245,6 +245,7 @@ def getMoreLinks(content):
 def readThread(source, index=False) -> dict:
     import re
     videoId = re.match(threadRegexp, source)
+    start = datetime.now().timestamp()
 
     if not videoId:
         return None
@@ -284,7 +285,7 @@ def readThread(source, index=False) -> dict:
         print(thread.info)
         links = []
         page = None
-    print("Has {} links".format(len(links)))
+    print("Has {} links took {}(sec)".format(len(links),datetime.now().timestamp()-start))
 
     return {'thread': thread, 'links': links, 'attachements': attachements}
 
@@ -479,6 +480,7 @@ def fetchAllThreads(dbUrl):
 
     while True:
         try:
+            start = datetime.now().timestamp()
             session = Session()
             from sqlalchemy.sql import exists, or_
             results = session.query(ThreadHeader).outerjoin(Thread, Thread.link == ThreadHeader.link) \
@@ -498,8 +500,9 @@ def fetchAllThreads(dbUrl):
             index = random.randrange(len(results))
             threadHeader: ThreadHeader = results[index]
 
-            print("{} Got {} headers old is {} blocked {}, select nb {}: {} - {}".format(
-                datetime.now().isoformat(), nbRes, nbResOld, nbBlocked, index, threadHeader.title, threadHeader.link))
+            print("{} Got {} headers took {}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
+                datetime.now().isoformat(), nbRes, datetime.now().timestamp()-start, nbResOld, nbBlocked,
+                index, threadHeader.title, threadHeader.link))
             nbResOld = nbRes
 
             thread = readThread(threadHeader.link)
@@ -520,6 +523,7 @@ def fetchAllAttachements(dbUrl):
 
     while True:
         try:
+            start = datetime.now().timestamp()
             session = Session()
             from sqlalchemy.sql import exists, or_
             results = session.query(Attachement) \
@@ -539,8 +543,9 @@ def fetchAllAttachements(dbUrl):
             index = random.randrange(len(results))
             attachement: Attachement = results[index]
 
-            print("{} Got {} attachements old is {} blocked {}, select nb {}: {} - {}".format(
-                datetime.now().isoformat(), nbRes, nbResOld, nbBlocked, index, attachement.title, attachement.link))
+            print("{} Got {} attachements took {}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
+                datetime.now().isoformat(), nbRes, datetime.now().timestamp()-start,
+                nbResOld, nbBlocked, index, attachement.title, attachement.link))
             nbResOld = nbRes
             
             attachement = downloadAttachement(attachement)
