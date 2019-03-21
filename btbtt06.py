@@ -160,6 +160,8 @@ def getLinks(soup: BeautifulSoup, source: str):
     for aTag in aTags:
         link = Link()
         link.link = aTag.attrs.get('href')
+        if not link.link:
+            continue
         link.source = source
         link.title = aTag.attrs.get('title')
         if link.title is None:
@@ -173,10 +175,13 @@ def findAttaches(links: [Link]) -> [Link]:
     import re
     atts = []
     for link in links:
-        match = re.match(attachementRegexp, link.link)
-        if not match:
-            continue
-        atts.append(link)
+        try:
+            match = re.match(attachementRegexp, link.link)
+            if not match:
+                continue
+            atts.append(link)
+        except:
+            pass
     return atts
 
 
@@ -560,9 +565,10 @@ def main():
     print("Start at {}".format(datetime.now().isoformat()))
     # fatchAllForumPages(DB_URL)
     # fetchAllThreads(DB_URL)
-    fetchAllAttachements(DB_URL)
+    # fetchAllAttachements(DB_URL)
     # getAllScores(engine)
     # getNews(engine)
+    thread = readThread('http://www.btbtt06.com/thread-index-fid-3-tid-8609.htm')
 
     print("End at {}".format(datetime.now().isoformat()))
     return
