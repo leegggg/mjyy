@@ -248,8 +248,8 @@ def getAllScores(engine):
 def main():
     engine = create_engine('sqlite:///./data/meijutt.com.db')
     Base.metadata.create_all(engine)
-    getAllScores(engine)
-    # getNews(engine)
+    # getAllScores(engine)
+    getNews(engine)
 
 
     return
