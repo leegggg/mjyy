@@ -102,8 +102,13 @@ def downloadAttachement(header: AttachementHeader) -> dict:
     attachement = Attachement()
     start = datetime.now()
     req = requests.get(downloadUrl, headers=REQUEST_HEADERS)
+
     attachement.content = str(base64.b64encode(req.content), 'utf-8')
     attachement.hash = sha256(req.content).hexdigest()
+    if int(req.status_code) > 400:
+        attachement.content = None
+        attachement.hash = None
+
     attachement.link = downloadUrl
     attachement.mod_date = datetime.now()
     attachement.title = header.title
