@@ -105,7 +105,8 @@ def downloadAttachement(header: AttachementHeader) -> dict:
 
     attachement.content = str(base64.b64encode(req.content), 'utf-8')
     attachement.hash = sha256(req.content).hexdigest()
-    if int(req.status_code) > 400:
+    status = int(req.status_code)
+    if  status > 400:
         attachement.content = None
         attachement.hash = None
 
@@ -119,8 +120,8 @@ def downloadAttachement(header: AttachementHeader) -> dict:
     header.mod_date = datetime.now()
     header.downloaded = datetime.now()
 
-    print("Download attachement from {} took {:.3f}(sec)".format(
-        downloadUrl, attachement.mod_date.timestamp() - start.timestamp()))
+    print("Download attachement from {} with status {} took {:.3f}(sec)".format(
+        downloadUrl, status, attachement.mod_date.timestamp() - start.timestamp()))
     return {'header': header, 'attachement': attachement}
 
 
