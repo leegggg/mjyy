@@ -31,7 +31,8 @@ def fetchAllImages(dbUrl):
     attrfilter = (
                     (AttachementHeader.fid == FID_IMG) &
                     (AttachementHeader.downloaded.is_(None)) &
-                    (~AttachementHeader.link.like('http://i2.tietuku.cn/%'))
+                    (~AttachementHeader.link.like('http://i2.tietuku.cn/%')) &
+                    (~AttachementHeader.link.like('https://www.btbttpic.com/upload/%'))
     )
 
 

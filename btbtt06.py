@@ -681,8 +681,13 @@ def main():
     # thread = readThread('http://www.btbtt06.com/thread-index-fid-3-tid-8609.htm')
     # makeUnreadedAttachement(DB_URL)
     # getNews(DB_URL)
-    makeImageAttachement(DB_URL)
+    # makeImageAttachement(DB_URL)
     # makeAttachementHeaders(DB_URL)
+
+    link = Link()
+    link.link = 'http://www.btbttpic.com/upload/attach/000/021/96818034993e88263dd9b272868bb7fd.jpg'
+    header = makeImageHeader(link)
+    att = downloadAttachement(header)
 
     print("End at {}".format(datetime.now().isoformat()))
     return
