@@ -8,147 +8,31 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-Base = declarative_base()
+
 
 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
-scoreUrlFormat = "https://www.meijutt.com/inc/ajax.asp?id={}&action=newstarscorevideo"
 
-forumPageFormat = 'http://www.btbtt06.com/forum-index-fid-{}-page-{}.htm'
-threadRegexp = 'http://www.btbtt06.com/thread-index-fid-(?P<fid>[0-9]+)-tid-(?P<tid>[0-9]+).htm'
-attachementRegexp = 'http://www.btbtt06.com/attach-dialog-fid-(?P<fid>[0-9]+)-aid-(?P<aid>[0-9]+)-ajax-1.htm'
-attachementUrlFormat = "http://www.btbtt06.com/attach-download-fid-{}-aid-{}.htm"
-DB_URL = 'sqlite:///./data/btbtt06.com.db'
+from btbtt06Costant import scoreUrlFormat
+from btbtt06Costant import forumPageFormat
+from btbtt06Costant import threadRegexp
+from btbtt06Costant import attachementRegexp
+from btbtt06Costant import attachementUrlFormat
+from btbtt06Costant import DB_URL
+from btbtt06Costant import FID_IMG
+from btbtt06Costant import REQUEST_HEADERS
+from btbtt06Costant import NB_MAX_BLOCKED
+from btbtt06Costant import FATCH_SIZE
+from btbtt06Costant import FALL_BACKDATE
 
-REQUEST_HEADERS = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0) Gecko/20100101 Firefox/59.0'
-}
-
-NB_MAX_BLOCKED = 10
-FATCH_SIZE = 200
-
-
-class Attachement(Base):
-    # 表的名字:
-    __tablename__ = 'ATTACHEMENT'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    hash = Column(String)  # VDPP,
-    title = Column(String)  # VDPP,
-    content = Column(String)  # observation,
-    source = Column(String)  # observation,
-    link = Column(String)  # observation,
-    fid = Column(String, primary_key=True)
-    aid = Column(String, primary_key=True)
-    mod_date = Column(DateTime)
-
-    def __str__(self) -> str:
-        return "title: {}, fid: {}, aid: {}, link: {}, hash: {}".format(
-            self.title, self.fid, self.aid, self.link, self.hash)
-
-
-class AttachementHeader(Base):
-    # 表的名字:
-    __tablename__ = 'ATTACHEMENT_HEADER'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    downloaded = Column(DateTime)  # VDPP,
-    title = Column(String)  # VDPP,
-    source = Column(String)  # observation,
-    link = Column(String)  # observation,
-    fid = Column(String, primary_key=True)
-    aid = Column(String, primary_key=True)
-    mod_date = Column(DateTime)
-
-    def __str__(self) -> str:
-        return "title: {}, fid: {}, aid: {}, link: {}".format(
-            self.title, self.fid, self.aid, self.link)
-
-
-class Link(Base):
-    # 表的名字:
-    __tablename__ = 'LINK'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    link = Column(String, primary_key=True)  # VDPP,
-    title = Column(String)  # observation,
-    source = Column(String)  # observation,
-    mod_date = Column(DateTime)
-
-
-class Thread(Base):
-    # 表的名字:
-    __tablename__ = 'THREAD'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    link = Column(String, primary_key=True)  # VDPP,
-    title = Column(String)  # observation,
-    tid = Column(String)
-    fid = Column(String)
-    info = Column(String)  # observation,
-    des = Column(String)  # observation,
-    mod_date = Column(DateTime)
-
-
-class ThreadHeader(Base):
-    # 表的名字:
-    __tablename__ = 'THREAD_HEADER'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    link = Column(String, primary_key=True)  # VDPP,
-    title = Column(String)  # observation,
-    tid = Column(String)
-    fid = Column(String)
-    lastpost = Column(DateTime)
-    mod_date = Column(DateTime)
-
-
-class ThreadHeaderInfo(Base):
-    # 表的名字:
-    __tablename__ = 'THREAD_HEADER_INFO'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    link = Column(String, primary_key=True)  # VDPP,
-    thread = Column(String, primary_key=True)  # observation,
-    mod_date = Column(DateTime)
-
-
-class Score(Base):
-    # 表的名字:
-    __tablename__ = 'SCORE'
-
-    def __init__(self):
-        pass
-
-    # 表的结构:
-    source = Column(String, primary_key=True)  # VDPP,
-    s1 = Column(Integer)
-    s2 = Column(Integer)
-    s3 = Column(Integer)
-    s4 = Column(Integer)
-    s5 = Column(Integer)
-    total = Column(Integer)
-    mean = Column(Float)
-    mod_date = Column(DateTime)
+from btbtt06DAO import Base
+from btbtt06DAO import ImageThread
+from btbtt06DAO import Attachement
+from btbtt06DAO import AttachementHeader
+from btbtt06DAO import Link
+from btbtt06DAO import Thread
+from btbtt06DAO import ThreadHeader
+from btbtt06DAO import ThreadHeaderInfo
+from btbtt06DAO import Score
 
 
 def getThread(soup: BeautifulSoup, source: str):
@@ -230,8 +114,8 @@ def downloadAttachement(header: AttachementHeader) -> dict:
     header.mod_date = datetime.now()
     header.downloaded = datetime.now()
 
-    print("Download attachement from {} took {}(sec)".format(downloadUrl,
-                                                             start.timestamp() - attachement.mod_date.timestamp()))
+    print("Download attachement from {} took {:.3f}(sec)".format(
+        downloadUrl, attachement.mod_date.timestamp() - start.timestamp()))
     return {'header': header, 'attachement': attachement}
 
 
@@ -259,6 +143,25 @@ def makeAttachementHeader(link: Link) -> Attachement:
     return attachement
 
 
+def makeImageHeader(link: Link) -> Attachement:
+    import re
+
+    fid = FID_IMG
+    aid = link.link
+
+    attachement = AttachementHeader()
+    attachement.source = link.link
+    attachement.link = link.link
+    attachement.aid = aid
+    attachement.fid = fid
+    attachement.title = link.title
+    attachement.mod_date = datetime.now()
+
+    print("Made empty image {}".format(attachement))
+
+    return attachement
+
+
 def getMoreLinks(content):
     import re
     if not content:
@@ -275,6 +178,33 @@ def getMoreLinks(content):
         torrents.add(matches[0])
 
     return torrents
+
+
+def getImageAttachementHeaders(content:str,source:str)->dict:
+    soup: BeautifulSoup = BeautifulSoup(content, 'html.parser')
+    imgTags: [Tag] = soup.findAll(name='img')  # 使用属性字典方式
+    attachementHeaders: [AttachementHeader] = []
+    imageThreads:[ImageThread] = []
+    for imgTag in imgTags:
+        link = Link()
+        link.link = imgTag.attrs.get('src')
+        if not link.link:
+            continue
+        link.source = source
+        link.title = imgTag.attrs.get('title')
+        if not link.title:
+            link.title = imgTag.text
+        link.mod_date = datetime.now()
+        attachementHeader = makeImageHeader(link)
+        if attachementHeader:
+            attachementHeaders.append(attachementHeader)
+        imageThread = ImageThread()
+        imageThread.thread = source
+        imageThread.link = link.link
+        imageThread.mod_date = datetime.now()
+        imageThreads.append(imageThread)
+
+    return {'headers':attachementHeaders,'imageThreads':imageThreads}
 
 
 def readThread(source, index=False) -> dict:
@@ -315,6 +245,9 @@ def readThread(source, index=False) -> dict:
         if attachement:
             attachements.append(attachement)
 
+    images = getImageAttachementHeaders(thread.info,source)
+    attachements.extend(images.get('headers'))
+
     if not index and (thread.info is None or len(thread.info)) <= 40:
         print("Skip this page as desc too short")
         print(thread.info)
@@ -322,7 +255,7 @@ def readThread(source, index=False) -> dict:
         page = None
     print("Has {} links took {}(sec)".format(len(links), datetime.now().timestamp() - start))
 
-    return {'thread': thread, 'links': links, 'attachements': attachements}
+    return {'thread': thread, 'links': links, 'attachements': attachements, 'imageThreads': images.get('imageThreads')}
 
 
 def saveAll(objs, engine, merge=False):
@@ -473,10 +406,6 @@ def getAndSaveForumPage(engine, source):
     saveThreadHeaders(engine, threadHeaders)
 
 
-def getNews(engine):
-    pass
-
-
 def getAndSaveForumPages(engine, fid='1', start=1, end=1):
     end = end + 1
     for i in range(start, end):
@@ -536,7 +465,7 @@ def fetchAllThreads(dbUrl):
             index = random.randrange(len(results))
             threadHeader: ThreadHeader = results[index]
 
-            print("{} Got {} headers took {}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
+            print("{} Got {} headers took {:.3f}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
                 datetime.now().isoformat(), nbRes, datetime.now().timestamp() - start, nbResOld, nbBlocked,
                 index, threadHeader.title, threadHeader.link))
             nbResOld = nbRes
@@ -547,12 +476,15 @@ def fetchAllThreads(dbUrl):
             print("Error download thread for {}".format(e))
 
 
-def fetchAllAttachements(dbUrl):
+def fetchAllAttachements(dbUrl, attachementFilter=None):
     import random
 
     engine = create_engine(dbUrl)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
+
+    if attachementFilter is None:
+        attachementFilter = (AttachementHeader.fid != FID_IMG) & (AttachementHeader.downloaded.is_(None))
 
     nbResOld = -1
     nbBlocked = 0
@@ -563,7 +495,7 @@ def fetchAllAttachements(dbUrl):
             session = Session()
             from sqlalchemy.sql import exists, or_
             results = session.query(AttachementHeader) \
-                .filter(AttachementHeader.downloaded.is_(None)) \
+                .filter(attachementFilter) \
                 .limit(FATCH_SIZE).all()
             session.expunge_all()
             session.commit()
@@ -580,18 +512,28 @@ def fetchAllAttachements(dbUrl):
             index = random.randrange(len(results))
             header: AttachementHeader = results[index]
 
-            print("{} Got {} attachements took {}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
+            print("{} Got {} attachements took {:.3f}(sec) old is {} blocked {}, select nb {}: {} - {}".format(
                 datetime.now().isoformat(), nbRes, datetime.now().timestamp() - start,
                 nbResOld, nbBlocked, index, header.title, header.link))
             nbResOld = nbRes
 
-            attachement = downloadAttachement(header)
+            attachement = None
+            try:
+                attachementRes = downloadAttachement(header)
+                attachement = attachementRes.get('attachement')
+                header = attachementRes.get('header')
+            except Exception as e:
+                print("Skip download thread for {}".format(e))
+                header.downloaded = FALL_BACKDATE
+
             session = Session()
-            session.merge(attachement.get('attachement'))
-            session.merge(attachement.get('header'))
+            if header is not None:
+                session.merge(header)
+            if attachement is not None:
+                session.merge(attachement)
             session.commit()
         except Exception as e:
-            print("Error download thread for {}".format(e))
+            print("Error download attachement for {}".format(e))
 
 
 def makeUnreadedAttachement(dbUrl):
@@ -625,6 +567,104 @@ def makeUnreadedAttachement(dbUrl):
         session.commit()
 
 
+def makeImageAttachement(dbUrl):
+    import random
+
+    engine = create_engine(dbUrl)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+
+    start = datetime.now().timestamp()
+    session = Session()
+    from sqlalchemy.sql import exists, or_
+    # results = session.query(Attachement.aid,Attachement.fid)\
+    #     .filter(~exists().where(Attachement.link == AttachementHeader.link)).all()
+    results = session.query(Thread.link).all()
+    session.expunge_all()
+    session.commit()
+
+    nb = len(results)
+    index = 0
+    print("Have {} threads".format(nb))
+
+    for threadLink in results:
+        session = Session()
+        thread = session.query(Thread) \
+            .filter(Thread.link == threadLink[0]).first()
+        session.expunge_all()
+        session.commit()
+
+        index += 1
+        print("{}/{} {} - {}".format(index, nb, thread.title, thread.link))
+
+        images = getImageAttachementHeaders(thread.info, thread.link)
+        saveAll(images.get('headers'),engine)
+        saveAll(images.get('imageThreads'),engine)
+
+
+
+
+def makeAttachementHeaders(dbUrl):
+    import random
+
+    engine = create_engine(dbUrl)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+
+    start = datetime.now().timestamp()
+    session = Session()
+    from sqlalchemy.sql import exists, or_
+    # results = session.query(Attachement.aid,Attachement.fid)\
+    #     .filter(~exists().where(Attachement.link == AttachementHeader.link)).all()
+    results = session.query(Attachement.aid, Attachement.fid).all()
+    session.expunge_all()
+    session.commit()
+
+    nb = len(results)
+    index = 0
+    print("Have {} attachements".format(nb))
+
+    for attachementId in results:
+        session = Session()
+        attachement = session.query(Attachement) \
+            .filter((Attachement.aid == attachementId[0]) & (Attachement.fid == attachementId[1])).first()
+        session.expunge_all()
+        session.commit()
+
+        index += 1
+        print("{}/{} {} - {}".format(index, nb, attachement.title, attachement.link))
+
+        header = AttachementHeader()
+        header.mod_date = datetime.now()
+        header.source = attachement.source
+        header.fid = attachement.fid
+        header.aid = attachement.aid
+        header.title = attachement.title
+        header.link = attachement.link
+        header.downloaded = attachement.mod_date
+        session = Session()
+        session.merge(header)
+        session.commit()
+
+
+def getNews(dbUrl):
+    engine = create_engine(dbUrl)
+    Base.metadata.create_all(engine)
+    getAndSaveForumPages(engine, fid='1', end=1)
+    getAndSaveForumPages(engine, fid='2', end=1)
+    getAndSaveForumPages(engine, fid='3', end=1)
+    getAndSaveForumPages(engine, fid='4', end=1)
+    getAndSaveForumPages(engine, fid='5', end=1)
+    # getForumPages(engine, fid='6', end=12)
+    # getForumPages(engine, fid='7', end=12)
+    getAndSaveForumPages(engine, fid='8', end=1)
+    getAndSaveForumPages(engine, fid='9', end=1)
+    getAndSaveForumPages(engine, fid='10', end=1)
+
+    fetchAllThreads(dbUrl)
+    fetchAllAttachements(dbUrl)
+
+
 def main():
     print("Start at {}".format(datetime.now().isoformat()))
     # fatchAllForumPages(DB_URL)
@@ -633,7 +673,10 @@ def main():
     # getAllScores(engine)
     # getNews(engine)
     # thread = readThread('http://www.btbtt06.com/thread-index-fid-3-tid-8609.htm')
-    makeUnreadedAttachement(DB_URL)
+    # makeUnreadedAttachement(DB_URL)
+    # getNews(DB_URL)
+    makeImageAttachement(DB_URL)
+    # makeAttachementHeaders(DB_URL)
 
     print("End at {}".format(datetime.now().isoformat()))
     return
