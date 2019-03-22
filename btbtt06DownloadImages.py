@@ -33,7 +33,8 @@ def fetchAllImages(dbUrl):
                     (AttachementHeader.downloaded.is_(None)) &
                     (~AttachementHeader.link.like('http://i2.tietuku.cn/%')) &
                     (~AttachementHeader.link.like('https://www.btbttpic.com/upload/%')) &
-                    (~AttachementHeader.link.like('http://www.btbttpic.com/upload/%'))
+                    (~AttachementHeader.link.like('http://www.btbttpic.com/upload/%')) &
+                    (~AttachementHeader.link.like('http://www.btmyth.net/data/attachment/forum/'))
     )
 
 
