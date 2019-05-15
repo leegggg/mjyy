@@ -57,6 +57,9 @@ class AttachementHeader(Base):
     fid = Column(String, primary_key=True)
     aid = Column(String, primary_key=True)
     mod_date = Column(DateTime)
+    status = Column(Integer)
+    comment = Column(String)
+    thread = Column(String)
 
     def __str__(self) -> str:
         return "title: {}, fid: {}, aid: {}, link: {}".format(

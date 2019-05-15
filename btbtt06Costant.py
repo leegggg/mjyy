@@ -1,12 +1,15 @@
 import datetime
 
 scoreUrlFormat = "https://www.meijutt.com/inc/ajax.asp?id={}&action=newstarscorevideo"
-forumPageFormat = 'http://www.btbtt06.com/forum-index-fid-{}-page-{}.htm'
-threadRegexp = 'http://www.btbtt06.com/thread-index-fid-(?P<fid>[0-9]+)-tid-(?P<tid>[0-9]+).htm'
-attachementRegexp = 'http://www.btbtt06.com/attach-dialog-fid-(?P<fid>[0-9]+)-aid-(?P<aid>[0-9]+)-ajax-1.htm'
-attachementUrlFormat = "http://www.btbtt06.com/attach-download-fid-{}-aid-{}.htm"
+forumPageFormat = 'http://www.btbtt08.com/forum-index-fid-{}-page-{}.htm'
+threadRegexp = 'http://www.btbtt08.com/thread-index-fid-(?P<fid>[0-9]+)-tid-(?P<tid>[0-9]+).htm'
+attachementRegexp = 'http://www.btbtt08.com/attach-dialog-fid-(?P<fid>[0-9]+)-aid-(?P<aid>[0-9]+)-ajax-1.htm'
+attachementUrlFormat = "http://www.btbtt08.com/attach-download-fid-{}-aid-{}.htm"
+attachementUrlRegexp = "http://www.btbtt08.com/attach-download-fid-(?P<fid>[0-9]+)-aid-(?P<aid>[0-9]+).htm"
 DB_URL = 'sqlite:///./data/btbtt06.com.db'
 FID_IMG = 'IMG'
+FID_TV_SHOW = '10'
+
 FALL_BACKDATE = datetime.datetime(1970, 1, 1, 0, 0, 0)
 REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -16,3 +19,5 @@ REQUEST_HEADERS = {
 
 NB_MAX_BLOCKED = 10
 FATCH_SIZE = 200
+
+STATUS_UNKNOW_ERROR = 1000

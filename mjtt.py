@@ -1,4 +1,3 @@
-
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -6,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, DateTime, Integer, Float
 from sqlalchemy.orm import sessionmaker
-from  sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 Base = declarative_base()
@@ -20,7 +19,6 @@ headers = {
 }
 
 
-
 class Link(Base):
     # 表的名字:
     __tablename__ = 'LINK'
@@ -29,10 +27,11 @@ class Link(Base):
         pass
 
     # 表的结构:
-    link = Column(String, primary_key=True)  #  VDPP,
-    title = Column(String)  #  observation,
+    link = Column(String, primary_key=True)  # VDPP,
+    title = Column(String)  # observation,
     source = Column(String)  # observation,
     mod_date = Column(DateTime)
+
 
 class Page(Base):
     # 表的名字:
@@ -42,11 +41,12 @@ class Page(Base):
         pass
 
     # 表的结构:
-    link = Column(String, primary_key=True)  #  VDPP,
-    title = Column(String)  #  observation,
+    link = Column(String, primary_key=True)  # VDPP,
+    title = Column(String)  # observation,
     info = Column(String)  # observation,
     des = Column(String)  # observation,
     mod_date = Column(DateTime)
+
 
 class Score(Base):
     # 表的名字:
@@ -56,7 +56,7 @@ class Score(Base):
         pass
 
     # 表的结构:
-    source = Column(String, primary_key=True)  #  VDPP,
+    source = Column(String, primary_key=True)  # VDPP,
     s1 = Column(Integer)
     s2 = Column(Integer)
     s3 = Column(Integer)
@@ -66,7 +66,8 @@ class Score(Base):
     mean = Column(Float)
     mod_date = Column(DateTime)
 
-def getPage(soup:BeautifulSoup,source:str):
+
+def getPage(soup: BeautifulSoup, source: str):
     title = None
     try:
         title = soup.title.text
@@ -92,8 +93,8 @@ def getPage(soup:BeautifulSoup,source:str):
     return page
 
 
-def getLinks(soup:BeautifulSoup,source:str):
-    aTags:[Tag] = soup.findAll(name='a')  # 使用属性字典方式
+def getLinks(soup: BeautifulSoup, source: str):
+    aTags: [Tag] = soup.findAll(name='a')  # 使用属性字典方式
     links: [Link] = []
     for aTag in aTags:
         link = Link()
@@ -105,22 +106,28 @@ def getLinks(soup:BeautifulSoup,source:str):
     return links
 
 
-def readPages(source:str, index=False)->dict:
-    print("{}   {}".format(datetime.now().isoformat(),source))
+def readPages(source: str, index=False) -> dict:
+    print("{}   {}".format(datetime.now().isoformat(), source))
     ret = requests.get(url=source, headers=headers, timeout=(30, 30))
     ret.encoding = ret.apparent_encoding  # 指定编码等于原始页面编码
-    soup:BeautifulSoup = BeautifulSoup(ret.text, 'html.parser')  # 使用lxml则速度更快
-    page = getPage(soup,source)
-    links = getLinks(soup,source)
+    soup: BeautifulSoup = BeautifulSoup(ret.text, 'html.parser')  # 使用lxml则速度更快
+    page = getPage(soup, source)
+    links = getLinks(soup, source)
+    score = None
+    try:
+        score = readScore(source)
+    except:
+        pass
     if not index and (page.info is None or len(page.info)) <= 40:
         print("Skip this page as desc too short")
         print(page.des)
         links = []
         page = None
     print("Has {} links".format(len(links)))
-    return {'page':page,'links':links}
+    return {'page': page, 'links': links, 'score': score}
 
-def readScore(source)->Score:
+
+def readScore(source) -> Score:
     import re
     videoId = ""
     try:
@@ -128,11 +135,11 @@ def readScore(source)->Score:
     except:
         return None
 
-    print("{} Get score of {}".format(datetime.now().isoformat(),videoId))
+    print("{} Get score of {}".format(datetime.now().isoformat(), videoId))
     url = scoreUrlFormat.format(videoId)
     ret = requests.get(url=url, headers=headers, timeout=(30, 30))
     ret.encoding = ret.apparent_encoding  # 指定编码等于原始页面编码
-    dt:[int] = ret.json()
+    dt: [int] = ret.json()
     print("id {} Score {}".format(videoId, dt))
     score = Score()
     score.source = source
@@ -142,16 +149,16 @@ def readScore(source)->Score:
     score.s4 = dt[3]
     score.s5 = dt[4]
     score.total = score.s1 + score.s2 + score.s3 + score.s4 + score.s5
-    score.mean = (score.s1*2 + score.s2*4 + score.s3*6 + score.s4*8 + score.s5*10)
-    if score.total and score.total>0:
-        score.mean = score.mean/score.total
+    score.mean = (score.s1 * 2 + score.s2 * 4 + score.s3 * 6 + score.s4 * 8 + score.s5 * 10)
+    if score.total and score.total > 0:
+        score.mean = score.mean / score.total
     else:
         score.mean = None
     score.mod_date = datetime.now()
     return score
 
 
-def insertOrIgnoreAll(objs,engine):
+def insertOrIgnoreAll(objs, engine):
     Session = sessionmaker(bind=engine)
     count = 0
     for link in objs:
@@ -163,61 +170,74 @@ def insertOrIgnoreAll(objs,engine):
         except IntegrityError as e:
             pass
 
-def savePage(page:dict,engine):
+
+def savePage(page: dict, engine):
     Session = sessionmaker(bind=engine)
     try:
         session = Session()
         pageDAO = page.get('page')
-        session.merge(pageDAO)
+        if pageDAO:
+            session.merge(pageDAO)
         session.commit()
     except Exception as e:
-        print("Error save page {} with {}".format(page,str(e)))
+        print("Error save page {} with {}".format(page, str(e)))
+
+    try:
+        session = Session()
+        scoreDAO = page.get('score')
+        if scoreDAO:
+            session.merge(scoreDAO)
+        session.commit()
+    except Exception as e:
+        print("Error save score {} with {}".format(page, str(e)))
 
     try:
         links = page.get('links')
-        insertOrIgnoreAll(links,engine)
+        insertOrIgnoreAll(links, engine)
     except Exception as e:
-        print("Error save links {} with {}".format(page,str(e)))
+        print("Error save links {} with {}".format(page, str(e)))
+
 
 def getNews(engine):
     import re
     seed = 'https://www.meijutt.com/new100.html'
     seedLinks = []
-    seedLinks.extend(readPages(seed,index=True).get('links'))
+    seedLinks.extend(readPages(seed, index=True).get('links'))
     for link in seedLinks:
-        source:str = link.link
-        if re.match('/content/meiju[0-9]+.html',source) is None:
+        source: str = link.link
+        if re.match('/content/meiju[0-9]+.html', source) is None:
             print("Skip source {} for not match regexp".format(source))
             continue
-        if re.match('^http.*',source) is None:
-            source = "{}{}".format('https://www.meijutt.com',source)
+        if re.match('^http.*', source) is None:
+            source = "{}{}".format('https://www.meijutt.com', source)
         try:
             page = readPages(source)
             if len(page.get('links')) > 20:
-                savePage(page,engine)
+                savePage(page, engine)
         except Exception as e:
-            print("Get page {} failed {}".format(source,str(e)))
+            print("Get page {} failed {}".format(source, str(e)))
+
 
 def getAll(engine):
     dp = 1
     i = 24327
-    while i< 300000:
+    while i < 300000:
         # source = 'https://www.coshi.cc/Mov/{}.html'.format(i)
-        i = i+1
+        i = i + 1
         source = 'https://www.meijutt.com/content/meiju{}.html'.format(i)
         try:
             page = readPages(source)
             if len(page.get('links')) > 20:
                 if dp > 1:
-                    i = int(i-dp)
+                    i = int(i - dp)
                 dp = 1
-                savePage(page,engine)
+                savePage(page, engine)
             else:
-                dp = 1.1*dp
+                dp = 1.1 * dp
                 print("dp={}".format(dp))
                 i = int(i + dp)
         except Exception as e:
-            print("Get page {} failed {}".format(source,str(e)))
+            print("Get page {} failed {}".format(source, str(e)))
 
 
 def getAllScores(engine):
@@ -229,13 +249,13 @@ def getAllScores(engine):
         try:
             session = Session()
             from sqlalchemy.sql import exists
-            results = session.query(Page).filter(Page.link.like('https://www.meijutt.com/content/meiju%.html'))\
+            results = session.query(Page).filter(Page.link.like('https://www.meijutt.com/content/meiju%.html')) \
                 .filter(~exists().where(Page.link == Score.source)).order_by('des').limit(2000).all()
             session.commit()
             if len(results) == 0:
                 break
             index = random.randrange(len(results))
-            page:Page = results[index]
+            page: Page = results[index]
             link = page.link
             score = readScore(link)
             session = Session()
@@ -250,7 +270,6 @@ def main():
     Base.metadata.create_all(engine)
     # getAllScores(engine)
     getNews(engine)
-
 
     return
 
