@@ -116,5 +116,5 @@ def getAttachement():
 
 if __name__ == '__main__':
     # getAttachementThread(DB_URL, 'http://www.btbtt06.com/thread-index-fid-1-tid-4410.htm')
-    getAttachementThread(DB_URL, 'http://www.btbtt07.com/thread-index-fid-3-tid-9769.htm')
+    getAttachementThread(DB_URL, 'http://www.btbtt06.com/thread-index-fid-1-tid-15351.htm')
 

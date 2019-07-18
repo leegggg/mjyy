@@ -7,8 +7,8 @@ attachementRegexp = 'http://www.btbtt06.com/attach-dialog-fid-(?P<fid>[0-9]+)-ai
 attachementUrlFormat = "http://www.btbtt06.com/attach-download-fid-{}-aid-{}.htm"
 attachementUrlRegexp = "http://www.btbtt06.com/attach-download-fid-(?P<fid>[0-9]+)-aid-(?P<aid>[0-9]+).htm"
 
-FEED_URL = 'http://subhd.com/feed'
-DOWN_URL = 'http://subhd.com/ajax/down_ajax'
+FEED_URL = 'https://subhd.tv/feed'
+DOWN_URL = 'https://subhd.tv/ajax/down_ajax'
 
 ATTACHEMENT_BASE_PATH = 'e:\subhd\server'
 ATTACHEMENT_OUT_BASE_PATH = 'e:\subhd\out'

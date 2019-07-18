@@ -29,6 +29,16 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 
+proxies = {
+  "http": "http://172.25.0.28:7890",
+  "https": "http://172.25.0.28:7890",
+}
+
+reqSession = requests.Session()
+reqSession.proxies = proxies
+
+
+
 def makeFullLink(link):
     from subhdCostant import DOMAIN
     return '{}{}'.format(DOMAIN, link)
@@ -53,7 +63,7 @@ def getSub(link: str) -> Sub:
     sub.ar = match.group('id')
 
     fullLink = makeFullLink(link)
-    ret = requests.get(url=fullLink, headers=REQUEST_HEADERS, timeout=(30, 30))
+    ret = reqSession.get(url=fullLink, headers=REQUEST_HEADERS, timeout=(30, 30))
     sub.status = int(ret.status_code)
     if sub.status >= 400:
         sub.mod_date = datetime.now()
@@ -236,7 +246,7 @@ def getWorkItem(link: str) -> dict:
         return None
 
     fullLink = makeFullLink(link)
-    ret = requests.get(url=fullLink, headers=REQUEST_HEADERS, timeout=(30, 30))
+    ret = reqSession.get(url=fullLink, headers=REQUEST_HEADERS, timeout=(30, 30))
     ret.encoding = ret.apparent_encoding  # 指定编码等于原始页面编码
 
     if int(ret.status_code) >= 400:
@@ -328,7 +338,7 @@ def getDownloadUrl(sid, dtoken):
         data = {'sub_id': sid,
                 'dtoken': dtoken}
         from subhdCostant import DOWN_URL
-        ret = requests.post(DOWN_URL, data=data, headers=REQUEST_HEADERS, timeout=(30, 30))
+        ret = reqSession.post(DOWN_URL, data=data, headers=REQUEST_HEADERS, timeout=(30, 30))
         ret.encoding = ret.apparent_encoding  # 指定编码等于原始页面编码
         downInfo = ret.json()
         url = downInfo.get('url')
@@ -365,7 +375,7 @@ def downloadSub(sub: Sub, workItemTitle=None, outputFlag=False):
         fullPath = Path(ATTACHEMENT_BASE_PATH).joinpath(subPath)
         os.makedirs(fullPath.parent, mode=0o755, exist_ok=True)
 
-        ret = requests.get(downUrl, headers=REQUEST_HEADERS, timeout=(30, 300))
+        ret = reqSession.get(downUrl, headers=REQUEST_HEADERS, timeout=(30, 300))
         sub.attachement_status = int(ret.status_code)
 
         if sub.attachement_status and sub.attachement_status < 400:
@@ -460,7 +470,7 @@ def fatchItem(link, dbUrl):
 def fatchFromFeed(feedUrl, dbUrl):
     import re
     print("Fatch headers from feed {}".format(feedUrl))
-    ret = requests.get(feedUrl, dbUrl)
+    ret = reqSession.get(feedUrl)
     ret.encoding = ret.apparent_encoding  # 指定编码等于原始页面编码
     soup: BeautifulSoup = BeautifulSoup(ret.text, 'html.parser')  # 使用lxml则速度更快
 
@@ -660,7 +670,7 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
     # fetchSub('/ar0/488564', engine)
 
-    fetchSubThread('/do0/26584183', DB_URL, outputFlag=True)
+    fetchSubThread('/do0/1652592', DB_URL, outputFlag=True)
 
     # attachement = getSub('/ar0/487113')
     # item = getWorkItem('https://subhd.com/do0/30424374')
