@@ -16,13 +16,13 @@ ATTACHEMENT_OUT_BASE_PATH = 'e:\subhd\out'
 # ATTACHEMENT_BASE_PATH = './data/subhd/server'
 # ATTACHEMENT_OUT_BASE_PATH = './data/subhd/out'
 
-DOMAIN = 'http://subhd.com'
+DOMAIN = 'https://subhd.tv'
 
 REGEXP_INDEX = r'S(?P<s>[0-9]+)EP?(?P<e>[0-9\-]+)'
 
 REGEXP_DOUBAN = r'https?://movie.douban.com/subject/[0-9]+'
 REGEXP_AR = r'/ar0/(?P<id>[0-9]+)'
-REGEXP_AR_FULL = r'https?://subhd.com(?P<path>/ar0/(?P<id>[0-9]+))'
+REGEXP_AR_FULL = r'https?://subhd.tv(?P<path>/ar0/(?P<id>[0-9]+))'
 REGEXP_ZU = r'/zu/(?P<id>[0-9]+)'
 REGEXP_USER = r'/u/(?P<id>.+)'
 REGEXP_DO = r'/do0/(?P<id>.+)'

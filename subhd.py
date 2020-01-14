@@ -30,8 +30,8 @@ from datetime import datetime
 
 
 proxies = {
-  "http": "http://172.25.0.28:7890",
-  "https": "http://172.25.0.28:7890",
+  "http": "http://redqueen.lan.linyz.net:7890",
+  "https": "http://redqueen.lan.linyz.net:7890",
 }
 
 reqSession = requests.Session()
@@ -338,6 +338,8 @@ def getDownloadUrl(sid, dtoken):
         data = {'sub_id': sid,
                 'dtoken': dtoken}
         from subhdCostant import DOWN_URL
+        # DOWN_URL = 'http://httpbin.org/post'
+
         ret = reqSession.post(DOWN_URL, data=data, headers=REQUEST_HEADERS, timeout=(30, 30))
         ret.encoding = ret.apparent_encoding  # 指定编码等于原始页面编码
         downInfo = ret.json()
@@ -570,7 +572,7 @@ def fetchFeedAndHeaders(dbUrl):
 
     fatchFromFeed(FEED_URL, dbUrl)
     fetchAllSubHeaders(dbUrl)
-    # fetchSubAll(dbUrl)
+    fetchSubAll(dbUrl)
 
 
 def fetchSubThread(link, dbUrl, outputFlag=False):
@@ -607,6 +609,7 @@ def fetchSubArLink(link, dbUrl, outputFlag=False):
 
 def fetchSubAll(dbUrl, attrfilter=None):
     import random
+    from datetime import timedelta
 
     engine = create_engine(dbUrl)
     Base.metadata.create_all(engine)
@@ -618,8 +621,11 @@ def fetchSubAll(dbUrl, attrfilter=None):
     processBegin = datetime.now()
 
     if attrfilter is None:
-        attrfilter = ((Sub.mod_date < processBegin) & (Sub.status <= 400) &
-                      ((Sub.attachement_status.is_(None)) | (Sub.attachement_status.between(400, 999))))
+        attrfilter = ((Sub.mod_date > (datetime.now()-timedelta(days=7))) &
+                      (Sub.mod_date < processBegin) & (Sub.status <= 400) &
+                      ((Sub.attachement_status.is_(None)) |
+                      (Sub.attachement_status.between(400, 999)))
+                      )
 
     while True:
         try:
@@ -670,11 +676,15 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
     # fetchSub('/ar0/488564', engine)
 
-    fetchSubThread('/do0/1652592', DB_URL, outputFlag=True)
+    # fetchSubThread('/do0/27010768', DB_URL, outputFlag=True)
+    fetchSubThread('/do0/30163504', DB_URL, outputFlag=True)
+    # fetchSubThread('/do0/27119724', DB_URL, outputFlag=True)
+    # fetchSubThread('/do0/30163504', DB_URL, outputFlag=True)
+    fetchSubThread('/do0/30454230', DB_URL, outputFlag=True)
 
     # attachement = getSub('/ar0/487113')
     # item = getWorkItem('https://subhd.com/do0/30424374')
-    # getDownloadUrl('50715','8159305acf1c03c5779d4e82d81d83756224234f')
+    # getDownloadUrl('494831','30688bd5d1efc70995ef7a072dc4f30ddac6ea4b')
 
     # fatchItem('https://subhd.com/do0/30424374', DB_URL)
 
