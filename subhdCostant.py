@@ -10,8 +10,8 @@ attachementUrlRegexp = "http://www.btbtt06.com/attach-download-fid-(?P<fid>[0-9]
 FEED_URL = 'https://subhd.tv/feed'
 DOWN_URL = 'https://subhd.tv/ajax/down_ajax'
 
-ATTACHEMENT_BASE_PATH = 'e:\subhd\server'
-ATTACHEMENT_OUT_BASE_PATH = 'e:\subhd\out'
+ATTACHEMENT_BASE_PATH = './data/subhd/server'
+ATTACHEMENT_OUT_BASE_PATH = './data/subhd/out'
 
 # ATTACHEMENT_BASE_PATH = './data/subhd/server'
 # ATTACHEMENT_OUT_BASE_PATH = './data/subhd/out'
@@ -41,7 +41,7 @@ REGEXP_ITEM_DIRECTOR = r'导演：(?P<text>.+)'
 REGEXP_ITEM_ACTOR = r'演员：(?P<text>.+)'
 REGEXP_ITEM_DES = r'介绍：(?P<text>.+)'
 
-DB_URL = 'sqlite:///./data/subhd.com.db'
+DB_URL = 'sqlite:///./data/subhd/subhd.com.db'
 FID_IMG = 'IMG'
 FALL_BACKDATE = datetime.datetime(1970, 1, 1, 0, 0, 0)
 REQUEST_HEADERS = {
