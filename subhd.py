@@ -678,7 +678,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', "--do",
                         dest='do',
                         help='douban item id',
-                        required=True,
+                        required=False,
                         type=str,
                         default="27010768")
 
