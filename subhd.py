@@ -693,7 +693,7 @@ if __name__ == '__main__':
     # fetchSubThread('/do0/30163504', DB_URL, outputFlag=True)
     # fetchSubThread('/do0/27119724', DB_URL, outputFlag=True)
     # fetchSubThread('/do0/30163504', DB_URL, outputFlag=True)
-    fetchSubThread('/do0/{do:str}'.format(do=do), DB_URL, outputFlag=True)
+    fetchSubThread('/do0/{do:s}'.format(do=do), DB_URL, outputFlag=True)
 
     # attachement = getSub('/ar0/487113')
     # item = getWorkItem('https://subhd.com/do0/30424374')
